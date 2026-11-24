@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday! ✨🎂</title>
+    <!-- Tailwind CSS for clean, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti for celebratory bursts -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts: Fredoka (cute rounded headings) & Quicksand (soft readable body) & Caveat (handwritten notes) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Fredoka', 'sans-serif'],
+                        sans: ['Quicksand', 'sans-serif'],
+                        handwriting: ['Caveat', 'cursive'],
+                    },
+                    colors: {
+                        pastelPink: '#FFD6E0',
+                        pastelRose: '#FF9EAA',
+                        pastelLavender: '#E2D1F9',
+                        pastelMint: '#C1F0DC',
+                        pastelYellow: '#FFF3B0',
+                        pastelCream: '#FFFDF9',
+                        warmText: '#5C4B51'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* ==========================================================================
+           CUSTOM ANIMATIONS & CUTE VISUAL EFFECTS
+           ========================================================================== */
+        body {
+            background: linear-gradient(135deg, #FFF5F7 0%, #F8F0FC 50%, #FFFBEB 100%);
+            color: #5C4B51;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Floating background particles */
+        @keyframes floatUp {
+            0% {
+                transform: translateY(105vh) rotate(0deg) scale(0.8);
+                opacity: 0;
+            }
+            15% {
+                opacity: 0.75;
+            }
+            85% {
+                opacity: 0.75;
+            }
+            100% {
+                transform: translateY(-15vh) rotate(360deg) scale(1.1);
+                opacity: 0;
+            }
+        }
+
+        .floating-bg-item {
+            position: fixed;
+            bottom: -50px;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatUp linear infinite;
+            user-select: none;
+        }
+
+        /* Gentle bounce for gift box and cute elements */
+        @keyframes cuteBounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-14px) scale(1.04); }
+        }
+        .animate-cute-bounce {
+            animation: cuteBounce 2.2s ease-in-out infinite;
+        }
+
+        /* Wiggle on hover */
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+        .hover-wiggle:hover {
+            animation: wiggle 0.4s ease-in-out infinite;
+        }
+
+        /* Candle flame flicker */
+        @keyframes flicker {
+            0%, 100% { transform: scale(1) rotate(-2deg); opacity: 1; }
+            25% { transform: scale(1.08, 0.94) rotate(2deg); opacity: 0.9; }
+            50% { transform: scale(0.95, 1.06) rotate(-1deg); opacity: 1; }
+            75% { transform: scale(1.05, 0.96) rotate(1deg); opacity: 0.92; }
+        }
+        .candle-flame {
+            transform-origin: bottom center;
+            animation: flicker 1.2s infinite ease-in-out;
+        }
+
+        /* Smoke puff animation when candles blow out */
+        @keyframes smokeRise {
+            0% { transform: translateY(0) scale(0.5); opacity: 0.8; }
+            100% { transform: translateY(-35px) scale(1.8); opacity: 0; }
+        }
+        .smoke-puff {
+            animation: smokeRise 1.4s ease-out forwards;
+        }
+
+        /* Polaroid pop-in entrance */
+        @keyframes polaroidPop {
+            0% { opacity: 0; transform: scale(0.75) translateY(20px) rotate(-6deg); }
+            70% { opacity: 1; transform: scale(1.03) translateY(-4px) rotate(2deg); }
+            100% { opacity: 1; transform: scale(1) translateY(0) rotate(var(--rot, -1.5deg)); }
+        }
+        .polaroid-reveal {
+            animation: polaroidPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* Envelope 3D Flap & Card Slide */
+        .envelope-wrapper {
+            perspective: 1000px;
+        }
+        .envelope-flap {
+            transform-origin: top center;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1), z-index 0.3s;
+        }
+        .envelope-open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+        .letter-sheet {
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s, opacity 0.5s ease;
+        }
+        .envelope-open .letter-sheet {
+            transform: translateY(-130px);
+        }
+
+        /* Soft glassmorphism card */
+        .pastel-glass {
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 214, 224, 0.8);
+            box-shadow: 0 12px 32px rgba(255, 158, 170, 0.16);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-pastelPink selection:text-warmText">
+
+    <!-- Floating Background Container (Populated via JS) -->
+    <div id="floating-bg-container" aria-hidden="true"></div>
+
+    <!-- ==========================================================================
+         1. WELCOME SURPRISE OVERLAY SCREEN
+         ========================================================================== -->
+    <section id="welcome-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-[#FFF0F5] via-[#F5EDFF] to-[#FFF9E6] transition-all duration-700">
+        <!-- Cute Bouncing Gift Box SVG -->
+        <div class="animate-cute-bounce mb-6 cursor-pointer" onclick="openSurprise()">
+            <svg class="w-40 h-40 sm:w-48 sm:h-48 drop-shadow-xl" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Sparkles around gift -->
+                <path d="M30 45L33 53L41 56L33 59L30 67L27 59L19 56L27 53L30 45Z" fill="#FFD166"/>
+                <path d="M170 35L172 41L178 43L172 45L170 51L168 45L162 43L168 41L170 35Z" fill="#FF9EAA"/>
+                <circle cx="165" cy="85" r="4" fill="#B8E0D2"/>
+                <circle cx="35" cy="100" r="5" fill="#D4C1EC"/>
+                <!-- Gift Box Base -->
+                <rect x="42" y="88" width="116" height="84" rx="16" fill="#FFD6E0" stroke="#FF8FA3" stroke-width="4"/>
+                <!-- Vertical Ribbon on Base -->
+                <rect x="88" y="88" width="24" height="84" fill="#FF8FA3"/>
+                <!-- Gift Box Lid -->
+                <rect x="34" y="64" width="132" height="28" rx="12" fill="#FFE5EC" stroke="#FF8FA3" stroke-width="4"/>
+                <!-- Vertical Ribbon on Lid -->
+                <rect x="88" y="64" width="24" height="28" fill="#FF8FA3"/>
+                <!-- Cute Bow Loops -->
+                <path d="M100 64C100 64 72 34 58 48C44 62 84 64 100 64Z" fill="#FF758F" stroke="#FF4D6D" stroke-width="3"/>
+                <path d="M100 64C100 64 128 34 142 48C156 62 116 64 100 64Z" fill="#FF758F" stroke="#FF4D6D" stroke-width="3"/>
+                <circle cx="100" cy="63" r="9" fill="#FF4D6D"/>
+                <!-- Kawaii Happy Face on Box -->
+                <circle cx="68" cy="128" r="4.5" fill="#5C4B51"/>
+                <circle cx="132" cy="128" r="4.5" fill="#5C4B51"/>
+                <ellipse cx="60" cy="135" rx="6" ry="3.5" fill="#FF9EAA" opacity="0.7"/>
+                <ellipse cx="140" cy="135" rx="6" ry="3.5" fill="#FF9EAA" opacity="0.7"/>
+                <path d="M93 132Q100 140 107 132" stroke="#5C4B51" stroke-width="3.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+
+        <span class="inline-block px-4 py-1.5 mb-3 text-xs sm:text-sm font-bold tracking-wider uppercase rounded-full bg-white/80 text-pink-500 shadow-sm border border-pink-200">
+            ✨ Special Delivery For You ✨
+        </span>
+
+        <h1 class="font-display text-4xl sm:text-6xl font-bold text-warmText mb-3 tracking-tight">
+            Hello... <span id="welcome-friend-name" class="text-pink-500">Bestie</span>! 🎀
+        </h1>
+        
+        <p class="max-w-md text-base sm:text-lg text-warmText/80 font-medium mb-8">
+             made a  little corner of the internet just to celebrate your special day!
+        </p>
+
+        <button onclick="openSurprise()" class="group relative inline-flex items-center gap-3 px-8 py-4 text-lg sm:text-xl font-display font-bold text-white bg-gradient-to-r from-pink-400 via-rose-400 to-purple-400 rounded-full shadow-lg shadow-pink-300/50 hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer">
+            <span>Tap to Open Your Surprise</span>
+            <span class="text-2xl group-hover:rotate-12 transition-transform">🎁</span>
+        </button>
+    </section>
+
+    <!-- ==========================================================================
+         2. MAIN BIRTHDAY CELEBRATION CONTENT (Hidden until surprise is opened)
+         ========================================================================== -->
+    <main id="main-celebration" class="relative z-10 hidden opacity-0 transition-opacity duration-1000 max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-16 space-y-16">
+        
+        <!-- HERO BANNER -->
+        <header class="text-center space-y-4">
+            <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/90 border-2 border-pastelPink shadow-sm text-sm font-bold text-pink-500">
+                <span>🌸</span>
+                <span id="birthday-badge-text">IT'S YOUR BIRTHDAY!</span>
+                <span>🌸</span>
+            </div>
+            
+            <h1 class="font-display text-4xl sm:text-6xl md:text-7xl font-bold text-warmText leading-tight">
+                Happy Birthday,<br>
+                <span id="hero-friend-name" class="bg-gradient-to-r from-pink-500 via-rose-400 to-purple-500 bg-clip-text text-transparent">
+                    Sweetest Bestie!
+                </span> 🎂✨
+            </h1>
+            
+            <p id="hero-subtitle" class="max-w-xl mx-auto text-base sm:text-lg text-warmText/80 font-medium">
+                Wishing the brightest, kindest, and most wonderful human the happiest year ahead filled with endless giggles, cake, and magic!
+            </p>
+        </header>
+
+        <!-- ======================================================================
+             3. INTERACTIVE MEMORY PHOTO REVEAL SECTION
+             ====================================================================== -->
+        <section class="pastel-glass rounded-3xl p-6 sm:p-10 text-center space-y-8">
+            <div class="space-y-2">
+                <span class="text-3xl">📸✨</span>
+                <h2 class="font-display text-2xl sm:text-4xl font-bold text-warmText">
+                    Your Cute Memory Vault
+                </h2>
+                <p class="text-sm sm:text-base text-warmText/75 max-w-md mx-auto">
+                    Tap each magical button below to unlock a favorite snapshot and memory of you!
+                </p>
+            </div>
+
+            <!-- Interactive Memory Buttons Grid -->
+            <div id="memory-buttons-container" class="flex flex-wrap justify-center gap-3 sm:gap-4">
+                <!-- Buttons are dynamically generated from the BIRTHDAY_CONFIG in JS -->
+            </div>
+
+            <!-- Polaroid Photo Display Stage -->
+            <div class="min-h-[360px] sm:min-h-[420px] flex items-center justify-center pt-2">
+                <!-- Initial Empty Prompt State -->
+                <div id="polaroid-placeholder" class="flex flex-col items-center justify-center p-8 rounded-3xl border-2 border-dashed border-pink-300 bg-white/50 max-w-sm w-full text-center space-y-3">
+                    <div class="w-16 h-16 rounded-full bg-pastelPink/60 flex items-center justify-center text-3xl animate-bounce">
+                        👆
+                    </div>
+                    <p class="font-display font-semibold text-lg text-warmText">
+                        Pick a memory button above!
+                    </p>
+                    <p class="text-xs sm:text-sm text-warmText/70">
+                        Each button reveals a special photo card & confetti surprise 🎉
+                    </p>
+                </div>
+
+                <!-- Active Polaroid Card (Hidden initially, revealed on click) -->
+                <div id="polaroid-card" class="hidden bg-white p-4 pb-7 sm:p-5 sm:pb-8 rounded-2xl shadow-2xl border border-pink-100 max-w-xs sm:max-w-sm w-full transform transition-all">
+                    <!-- Cute Washi Tape Decoration on Top -->
+                    <div class="w-24 h-6 bg-pastelYellow/90 border border-yellow-200/80 mx-auto -mt-7 mb-3 rounded-sm shadow-sm transform -rotate-2"></div>
+                    
+                    <!-- Photo Frame -->
+                    <div class="relative aspect-square w-full overflow-hidden rounded-xl bg-pink-50 border border-pink-100 mb-4">
+                        <img id="polaroid-img" src="" alt="Cute Birthday Memory" class="w-full h-full object-cover transition-transform duration-500 hover:scale-105">
+                        <span id="polaroid-tag" class="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold bg-white/90 text-pink-500 shadow-sm">
+                            Memory #1
+                        </span>
+                    </div>
+
+                    <!-- Handwritten Polaroid Caption -->
+                    <div class="space-y-1 text-center px-2">
+                        <h3 id="polaroid-title" class="font-display font-bold text-lg text-warmText">
+                            Bestie Vibes
+                        </h3>
+                        <p id="polaroid-caption" class="font-handwriting text-2xl sm:text-3xl text-pink-600 leading-snug">
+                            "Every moment with you is pure sunshine!"
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unlocked Memories Counter -->
+            <div class="text-xs sm:text-sm font-semibold text-warmText/70">
+                Memories Unlocked: <span id="unlocked-count" class="text-pink-500 font-bold">0</span> / <span id="total-memories-count">4</span> 💖
+            </div>
+        </section>
+
+        <!-- ======================================================================
+             4. INTERACTIVE BIRTHDAY CAKE (BLOW OUT THE CANDLES!)
+             ====================================================================== -->
+        <section class="pastel-glass rounded-3xl p-6 sm:p-10 text-center space-y-6">
+            <div class="space-y-2">
+                <h2 class="font-display text-2xl sm:text-4xl font-bold text-warmText">
+                    Make a Birthday Wish! 🕯️
+                </h2>
+                <p id="cake-instruction" class="text-sm sm:text-base text-warmText/75">
+                    Close your eyes, make your biggest wish, and <strong>tap the cake</strong> to blow out the candles!
+                </p>
+            </div>
+
+            <!-- Interactive Cute Cake SVG -->
+            <div class="flex justify-center py-4">
+                <button id="birthday-cake-btn" onclick="blowOutCandles()" aria-label="Blow out birthday candles" class="group relative focus:outline-none cursor-pointer transition-transform duration-300 hover:scale-105 active:scale-95">
+                    <svg class="w-64 h-64 sm:w-72 sm:h-72 drop-shadow-lg" viewBox="0 0 260 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Cake Plate -->
+                        <ellipse cx="130" cy="222" rx="108" ry="18" fill="#E2D1F9"/>
+                        <ellipse cx="130" cy="218" rx="96" ry="13" fill="#FFFFFF"/>
+
+                        <!-- Bottom Cake Tier (Pastel Pink) -->
+                        <rect x="46" y="156" width="168" height="60" rx="18" fill="#FFD6E0" stroke="#FF9EAA" stroke-width="3"/>
+                        <!-- Bottom Frosting Drips -->
+                        <path d="M46 168C46 160 55 156 64 156H196C205 156 214 160 214 168V176C214 182 206 185 201 180C196 175 190 186 183 186C176 186 172 175 165 175C158 175 154 188 146 188C138 188 134 176 127 176C120 176 115 187 107 187C99 187 95 175 88 175C81 175 76 185 69 185C62 185 57 176 51 180C48 182 46 179 46 176V168Z" fill="#FFFDF9"/>
+
+                        <!-- Top Cake Tier (Pastel Lavender/Cream) -->
+                        <rect x="68" y="104" width="124" height="54" rx="16" fill="#F3E8FF" stroke="#D4C1EC" stroke-width="3"/>
+                        <!-- Top Frosting Drips -->
+                        <path d="M68 114C68 108 75 104 82 104H178C185 104 192 108 192 114V121C192 126 185 128 181 124C177 120 171 130 165 130C159 130 154 120 148 120C142 120 137 131 130 131C123 131 118 120 112 120C106 120 101 129 95 129C89 129 84 120 79 124C75 127 68 125 68 121V114Z" fill="#FFFFFF"/>
+
+                        <!-- Cute Kawaii Face on Cake -->
+                        <circle cx="108" cy="192" r="4" fill="#5C4B51"/>
+                        <circle cx="152" cy="192" r="4" fill="#5C4B51"/>
+                        <ellipse cx="100" cy="198" rx="5" ry="3" fill="#FF9EAA" opacity="0.8"/>
+                        <ellipse cx="160" cy="198" rx="5" ry="3" fill="#FF9EAA" opacity="0.8"/>
+                        <path d="M124 195Q130 202 136 195" stroke="#5C4B51" stroke-width="3" stroke-linecap="round"/>
+
+                        <!-- Decorative Sprinkles -->
+                        <circle cx="88" cy="142" r="3" fill="#FF9EAA"/>
+                        <circle cx="115" cy="146" r="3" fill="#FFD166"/>
+                        <circle cx="145" cy="144" r="3" fill="#80ED99"/>
+                        <circle cx="172" cy="141" r="3" fill="#FF9EAA"/>
+
+                        <!-- CANDLE 1 (Left) -->
+                        <rect x="92" y="68" width="10" height="36" rx="4" fill="#FF9EAA"/>
+                        <path d="M92 76L102 82M92 86L102 92" stroke="#FFFFFF" stroke-width="2.5"/>
+                        <!-- Flame 1 -->
+                        <g id="flame-1" class="candle-flame">
+                            <path d="M97 44C97 44 105 54 105 60C105 64.4 101.4 68 97 68C92.6 68 89 64.4 89 60C89 54 97 44 97 44Z" fill="#FFB703"/>
+                            <path d="M97 51C97 51 101 56.5 101 60C101 62.2 99.2 64 97 64C94.8 64 93 62.2 93 60C93 56.5 97 51 97 51Z" fill="#FFF3B0"/>
+                        </g>
+
+                        <!-- CANDLE 2 (Center) -->
+                        <rect x="125" y="62" width="10" height="42" rx="4" fill="#A0C4FF"/>
+                        <path d="M125 70L135 76M125 80L135 86M125 90L135 96" stroke="#FFFFFF" stroke-width="2.5"/>
+                        <!-- Flame 2 -->
+                        <g id="flame-2" class="candle-flame" style="animation-delay: 0.2s;">
+                            <path d="M130 38C130 38 138 48 138 54C138 58.4 134.4 62 130 62C125.6 62 122 58.4 122 54C122 48 130 38 130 38Z" fill="#FFB703"/>
+                            <path d="M130 45C130 45 134 50.5 134 54C134 56.2 132.2 58 130 58C127.8 58 126 56.2 126 54C126 50.5 130 45 130 45Z" fill="#FFF3B0"/>
+                        </g>
+
+                        <!-- CANDLE 3 (Right) -->
+                        <rect x="158" y="68" width="10" height="36" rx="4" fill="#BDB2FF"/>
+                        <path d="M158 76L168 82M158 86L168 92" stroke="#FFFFFF" stroke-width="2.5"/>
+                        <!-- Flame 3 -->
+                        <g id="flame-3" class="candle-flame" style="animation-delay: 0.4s;">
+                            <path d="M163 44C163 44 171 54 171 60C171 64.4 167.4 68 163 68C158.6 68 155 64.4 155 60C155 54 163 44 163 44Z" fill="#FFB703"/>
+                            <path d="M163 51C163 51 167 56.5 167 60C167 62.2 165.2 64 163 64C160.8 64 159 62.2 159 60C159 56.5 163 51 163 51Z" fill="#FFF3B0"/>
+                        </g>
+
+                        <!-- Smoke Puffs (Hidden until candles are blown out) -->
+                        <g id="candle-smoke" class="hidden">
+                            <circle cx="97" cy="52" r="6" fill="#CBD5E1" class="smoke-puff"/>
+                            <circle cx="130" cy="46" r="7" fill="#CBD5E1" class="smoke-puff" style="animation-delay: 0.1s;"/>
+                            <circle cx="163" cy="52" r="6" fill="#CBD5E1" class="smoke-puff" style="animation-delay: 0.2s;"/>
+                        </g>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Relight Button (Appears after blowing candles out) -->
+            <div id="wish-made-banner" class="hidden space-y-3">
+                <p class="font-display text-xl sm:text-2xl font-bold text-pink-500 animate-bounce">
+                    ✨ Yay!! May all your wishes come true! ✨
+                </p>
+                <button onclick="relightCandles()" class="px-5 py-2 text-xs sm:text-sm font-bold text-warmText bg-pastelYellow hover:bg-yellow-200 rounded-full shadow-sm transition cursor-pointer">
+                    🔥 Relight Candles
+                </button>
+            </div>
+        </section>
+
+        <!-- ======================================================================
+             5. INTERACTIVE BIRTHDAY WISH ENVELOPE & LETTER
+             ====================================================================== -->
+        <section class="pastel-glass rounded-3xl p-6 sm:p-12 text-center space-y-8 overflow-hidden">
+            <div class="space-y-2">
+                <h2 class="font-display text-2xl sm:text-4xl font-bold text-warmText">
+                    A Little Love Note For You 💌
+                </h2>
+                <p class="text-sm sm:text-base text-warmText/75">
+                    Tap the pastel envelope below to open your birthday card!
+                </p>
+            </div>
+
+            <!-- Interactive Envelope Container -->
+            <div class="pt-28 pb-6 flex justify-center">
+                <div id="envelope-box" onclick="toggleEnvelope()" class="envelope-wrapper relative w-72 sm:w-96 h-48 sm:h-56 bg-pastelPink rounded-b-2xl shadow-xl cursor-pointer select-none transition-transform duration-300 hover:scale-[1.02]">
+                    
+                    <!-- Back Flap Interior -->
+                    <div class="absolute inset-0 bg-[#FFB3C6] rounded-b-2xl"></div>
+
+                    <!-- The Letter Card Inside -->
+                    <div id="letter-card" class="letter-sheet absolute left-4 right-4 top-3 bottom-3 bg-white rounded-xl p-5 sm:p-6 shadow-md border border-pink-100 flex flex-col justify-between text-left z-10">
+                        <div class="space-y-2 overflow-y-auto max-h-44 pr-1">
+                            <p id="letter-greeting" class="font-handwriting text-2xl sm:text-3xl font-bold text-pink-500">
+                                Dearest Bestie,
+                            </p>
+                            <p id="letter-body" class="text-xs sm:text-sm text-warmText leading-relaxed font-medium">
+                               "Happy, happy birthday! Thank you for being my friend, and the sweetest soul I know. Life is 100x brighter, and funnier with you in it. May this new chapter bring you everything your heart wishes for!"
+                            </p>
+                        </div>
+                        <div class="pt-2 border-t border-pink-100 flex items-center justify-between">
+                            <span id="letter-signoff" class="font-handwriting text-xl sm:text-2xl font-bold text-purple-500">
+                                Love always, Your Bestie 💕
+                            </span>
+                            <span class="text-lg">🌸</span>
+                        </div>
+                    </div>
+
+                    <!-- Envelope Front Pocket (Left, Right & Bottom Triangles via SVG) -->
+                    <svg class="absolute inset-0 w-full h-full z-20 pointer-events-none rounded-b-2xl" viewBox="0 0 384 224" preserveAspectRatio="none">
+                        <!-- Left Fold -->
+                        <polygon points="0,0 192,125 0,224" fill="#FFC2D1"/>
+                        <!-- Right Fold -->
+                        <polygon points="384,0 192,125 384,224" fill="#FFB3C6"/>
+                        <!-- Bottom Fold -->
+                        <polygon points="0,224 192,112 384,224" fill="#FFD6E0"/>
+                    </svg>
+
+                    <!-- Top Envelope Flap -->
+                    <div class="envelope-flap absolute top-0 left-0 w-full h-32 z-30 pointer-events-none">
+                        <svg class="w-full h-full drop-shadow-md" viewBox="0 0 384 128" preserveAspectRatio="none">
+                            <polygon points="0,0 384,0 192,124" fill="#FF9EAA"/>
+                        </svg>
+                        <!-- Cute Heart Wax Seal -->
+                        <div id="heart-seal" class="absolute left-1/2 bottom-2 -translate-x-1/2 translate-y-1/2 w-12 h-12 rounded-full bg-rose-500 border-4 border-white shadow-md flex items-center justify-center text-white text-xl transition-opacity duration-300">
+                            💖
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="toggleEnvelope()" id="envelope-toggle-btn" class="px-6 py-2.5 rounded-full bg-white border-2 border-pink-200 text-pink-500 font-bold text-sm shadow-sm hover:bg-pink-50 transition cursor-pointer">
+                💌 Open Birthday Card
+            </button>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="text-center pb-8 text-xs sm:text-sm text-warmText/60 font-medium">
+            Made with 💖, pastel sparkles & extra frosting just for <span id="footer-friend-name" class="font-bold text-pink-500">you</span>!
+        </footer>
+    </main>
+
+    <!-- ==========================================================================
+         JAVASCRIPT: EASY CUSTOMIZATION CONFIG & INTERACTIVE LOGIC
+         ========================================================================== -->
+    <script>
+        /**
+         * ========================================================================
+         * 🎨 EASY CUSTOMIZATION SECTION — EDIT YOUR FRIEND'S DETAILS HERE!
+         * ========================================================================
+         * Swap out the friend's name, photo URLs, captions, and letter message below.
+         * You can use online image links (Unsplash, Google Photos, etc.) or local
+         * file paths (e.g., "./photos/pic1.jpg").
+         */
+        const BIRTHDAY_CONFIG = {
+            friendName: "VIDISHA", // <-- Change to your friend's name!
+            badgeText: "HAPPY BIRTHDAY VIDISHA 👑",
+            heroSubtitle: "Wishing the brightest, kindest, and most wonderful Girl the happiest year ahead filled with endless giggles, cake, and magic!",
+            
+            // Customize the 4 interactive memory buttons & Polaroid photos:
+            memories: [
+                {
+                    id: 1,
+                    buttonLabel: "MEMORY✨",
+                    buttonColor: "bg-pastelPink hover:bg-pink-200 text-pink-800 border-pink-300",
+                    tag: "Bestie Vibes ✨",
+                    title: "❤",
+                    // Replace this URL with your friend's photo!
+                    imageUrl: "photo1.jpg",
+                    caption: "random meet that turned into a core memory with you! 🌟💕",
+                    rotation: "-2deg"
+                },
+                {
+                    id: 2,
+                    buttonLabel: "self 🌈",
+                    buttonColor: "bg-pastelLavender hover:bg-purple-200 text-purple-800 border-purple-300",
+                    tag: "Enjoying self company🌈",
+                    title: "Calm",
+                    // Replace this URL with your friend's photo!
+                    imageUrl: "photo2.jpg",
+                    caption: "RANDOM ",
+                    rotation: "2deg"
+                },
+                {
+                    id: 3,
+                    buttonLabel: "SMILE😂",
+                    buttonColor: "bg-pastelMint hover:bg-emerald-200 text-emerald-800 border-emerald-300",
+                    tag: "Unforgettable Laughs 😂",
+                    title: "Most beautiful smile",
+                    // Replace this URL with your friend's photo!
+                    imageUrl: "photo3.jpg",
+                    caption: "Your smile literally lights up every single room you walk into! ☀️",
+                    rotation: "-1.5deg"
+                },
+                {
+                    id: 4,
+                    buttonLabel: "SUNSHINE🌻",
+                    buttonColor: "bg-pastelYellow hover:bg-amber-200 text-amber-800 border-amber-300",
+                    tag: "Queen Energy 👑",
+                    title: "SUNSHINE",
+                    // Replace this URL with your friend's photo!
+                    imageUrl: "photo4.jpg",
+                    caption: "Shining brighter every, happy birthday VIDISHA🥂🎂",
+                    rotation: "1.8deg"
+                }
+            ],
+
+            // Customize the birthday card envelope message:
+            letter: {
+                greeting: "Dearest VIDISHA,",
+                body: "Happy, happy birthday! Thank you for being my friend, and the sweetest soul I know. Life is 100x brighter, and funnier with you in it. May this new chapter bring you everything your heart wishes for!",
+                signoff: "💖"
+            }
+        };
+
+        /* ========================================================================
+           APP INITIALIZATION & STATE
+           ======================================================================== */
+        const unlockedMemoryIds = new Set();
+        let candlesLit = true;
+        let isEnvelopeOpen = false;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            applyCustomConfig();
+            createFloatingBackground();
+            renderMemoryButtons();
+        });
+
+        // Populate text fields from BIRTHDAY_CONFIG
+        function applyCustomConfig() {
+            document.getElementById("welcome-friend-name").textContent = BIRTHDAY_CONFIG.friendName;
+            document.getElementById("hero-friend-name").textContent = `${BIRTHDAY_CONFIG.friendName}!`;
+            document.getElementById("birthday-badge-text").textContent = BIRTHDAY_CONFIG.badgeText;
+            document.getElementById("hero-subtitle").textContent = BIRTHDAY_CONFIG.heroSubtitle;
+            document.getElementById("footer-friend-name").textContent = BIRTHDAY_CONFIG.friendName;
+            document.getElementById("total-memories-count").textContent = BIRTHDAY_CONFIG.memories.length;
+
+            // Letter content
+            document.getElementById("letter-greeting").textContent = BIRTHDAY_CONFIG.letter.greeting;
+            document.getElementById("letter-body").textContent = BIRTHDAY_CONFIG.letter.body;
+            document.getElementById("letter-signoff").textContent = BIRTHDAY_CONFIG.letter.signoff;
+        }
+
+        // Generate floating pastel hearts, stars, and balloons in background
+        function createFloatingBackground() {
+            const container = document.getElementById("floating-bg-container");
+            const icons = ["💖", "✨", "🎈", "🌸", "⭐", "🎀", "🧁", "🦋"];
+            const itemCount = 22;
+
+            for (let i = 0; i < itemCount; i++) {
+                const el = document.createElement("div");
+                el.className = "floating-bg-item";
+                el.textContent = icons[i % icons.length];
+                el.style.left = `${Math.random() * 96}%`;
+                el.style.fontSize = `${Math.floor(Math.random() * 16) + 18}px`;
+                el.style.animationDuration = `${Math.floor(Math.random() * 10) + 12}s`;
+                el.style.animationDelay = `${Math.random() * 10}s`;
+                container.appendChild(el);
+            }
+        }
+
+        /* ========================================================================
+           1. WELCOME SCREEN TRANSITION
+           ======================================================================== */
+        function openSurprise() {
+            // Fire big celebratory pastel confetti burst
+            triggerPastelConfetti({ particleCount: 110, spread: 80, origin: { y: 0.6 } });
+
+            const welcomeScreen = document.getElementById("welcome-screen");
+            const mainCelebration = document.getElementById("main-celebration");
+
+            welcomeScreen.classList.add("opacity-0", "scale-105", "pointer-events-none");
+            
+            setTimeout(() => {
+                welcomeScreen.classList.add("hidden");
+                mainCelebration.classList.remove("hidden");
+                // Trigger fade-in
+                requestAnimationFrame(() => {
+                    mainCelebration.classList.remove("opacity-0");
+                });
+            }, 600);
+        }
+
+        /* ========================================================================
+           2. MEMORY PHOTO REVEAL LOGIC
+           ======================================================================== */
+        function renderMemoryButtons() {
+            const container = document.getElementById("memory-buttons-container");
+            container.innerHTML = "";
+
+            BIRTHDAY_CONFIG.memories.forEach((memory) => {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.id = `mem-btn-${memory.id}`;
+                btn.className = `hover-wiggle px-5 py-3 rounded-2xl border-2 font-display font-semibold text-sm sm:text-base shadow-sm transition-all duration-200 active:scale-95 cursor-pointer ${memory.buttonColor}`;
+                btn.textContent = memory.buttonLabel;
+                btn.onclick = () => revealMemory(memory);
+                container.appendChild(btn);
+            });
+        }
+
+        function revealMemory(memory) {
+            // Confetti burst on button click
+            triggerPastelConfetti({
+                particleCount: 65,
+                spread: 65,
+                origin: { y: 0.65 }
+            });
+
+            // Track unlocked memories
+            unlockedMemoryIds.add(memory.id);
+            document.getElementById("unlocked-count").textContent = unlockedMemoryIds.size;
+
+            // Highlight active button
+            document.querySelectorAll("#memory-buttons-container button").forEach(b => {
+                b.classList.remove("ring-4", "ring-pink-300", "scale-105");
+            });
+            const activeBtn = document.getElementById(`mem-btn-${memory.id}`);
+            if (activeBtn) {
+                activeBtn.classList.add("ring-4", "ring-pink-300", "scale-105");
+            }
+
+            // Update Polaroid Card content
+            const placeholder = document.getElementById("polaroid-placeholder");
+            const card = document.getElementById("polaroid-card");
+            const img = document.getElementById("polaroid-img");
+            const tag = document.getElementById("polaroid-tag");
+            const title = document.getElementById("polaroid-title");
+            const caption = document.getElementById("polaroid-caption");
+
+            placeholder.classList.add("hidden");
+            
+            // Fallback SVG in case a custom photo URL fails to load
+            img.onerror = function() {
+                this.onerror = null;
+                this.src = "https://placehold.co/600x600/FFD6E0/5C4B51?text=Cute+Bestie+Photo+%F0%9F%92%96";
+            };
+            img.src = memory.imageUrl;
+            tag.textContent = memory.tag;
+            title.textContent = memory.title;
+            caption.textContent = `"${memory.caption}"`;
+
+            // Re-trigger pop animation cleanly
+            card.classList.remove("hidden", "polaroid-reveal");
+            card.style.setProperty("--rot", memory.rotation);
+            void card.offsetWidth; // Force reflow
+            card.classList.add("polaroid-reveal");
+        }
+
+        /* ========================================================================
+           3. INTERACTIVE CAKE CANDLES LOGIC
+           ======================================================================== */
+        function blowOutCandles() {
+            if (!candlesLit) return;
+            candlesLit = false;
+
+            // Hide candle flames
+            ["flame-1", "flame-2", "flame-3"].forEach(id => {
+                document.getElementById(id).classList.add("hidden");
+            });
+
+            // Show rising smoke puffs
+            const smoke = document.getElementById("candle-smoke");
+            smoke.classList.remove("hidden");
+
+            // Update instructions & celebrate with confetti
+            document.getElementById("cake-instruction").textContent = "Woohoo!! Your birthday wish has been sent up to the stars! 🌟";
+            document.getElementById("wish-made-banner").classList.remove("hidden");
+
+            triggerPastelConfetti({
+                particleCount: 90,
+                spread: 90,
+                origin: { y: 0.6 }
+            });
+        }
+
+        function relightCandles() {
+            candlesLit = true;
+            ["flame-1", "flame-2", "flame-3"].forEach(id => {
+                document.getElementById(id).classList.remove("hidden");
+            });
+            document.getElementById("candle-smoke").classList.add("hidden");
+            document.getElementById("wish-made-banner").classList.add("hidden");
+            document.getElementById("cake-instruction").innerHTML = "Close your eyes, make your biggest wish, and <strong>tap the cake</strong> to blow out the candles!";
+        }
+
+        /* ========================================================================
+           4. ENVELOPE CARD ANIMATION LOGIC
+           ======================================================================== */
+        function toggleEnvelope() {
+            isEnvelopeOpen = !isEnvelopeOpen;
+            const envelope = document.getElementById("envelope-box");
+            const seal = document.getElementById("heart-seal");
+            const toggleBtn = document.getElementById("envelope-toggle-btn");
+
+            if (isEnvelopeOpen) {
+                envelope.classList.add("envelope-open");
+                seal.classList.add("opacity-0");
+                toggleBtn.textContent = "💌 Close Birthday Card";
+                triggerPastelConfetti({
+                    particleCount: 55,
+                    spread: 60,
+                    origin: { y: 0.7 }
+                });
+            } else {
+                envelope.classList.remove("envelope-open");
+                seal.classList.remove("opacity-0");
+                toggleBtn.textContent = "💌 Open Birthday Card";
+            }
+        }
+
+        /* ========================================================================
+           HELPER: PASTEL CONFETTI BURST
+           ======================================================================== */
+        function triggerPastelConfetti(options = {}) {
+            if (typeof confetti !== "function") return;
+            confetti({
+                colors: ["#FF9EAA", "#FFD6E0", "#E2D1F9", "#C1F0DC", "#FFF3B0", "#FF758F"],
+                ...options
+            });
+        }
+    </script>
+</body>
+</html>
